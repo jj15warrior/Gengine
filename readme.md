@@ -167,7 +167,7 @@ you can do it yourself, but from what I calculated, the maximum `x` after divisi
 if you have any questions, dm me on discord
 
 
-# Part 5: how to use - examples
+# Part 5: how to use - examples - coming soon
 
 ```c++
 //
