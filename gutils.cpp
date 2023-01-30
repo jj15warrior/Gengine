@@ -4,13 +4,12 @@
 #include "stdafx.h"
 #include "Game.h"
 #include "gutils.h"
+
 using namespace std;
 
 
-float axisX = 0, axisY = 0;
-float preMouseX = 0, preMouseY = 0;
+float mousex = 0, mousey = 0;
 int width, height;
-int old_width, old_height;
 std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 std::chrono::time_point<std::chrono::steady_clock> endtime = std::chrono::steady_clock::now();
 std::chrono::time_point<std::chrono::steady_clock> tick_timer = std::chrono::steady_clock::now(); //timer for game ticks
@@ -33,7 +32,8 @@ extern bool on;
  * 3. regulates fps by sleeping
  */
 
-glist gllist = glist();
+Gobj gobj = Gobj();
+vector <Gobj> gobjs;
 
 void calcDeltaTime(){
     chrono::duration<double> elapsed = chrono::steady_clock::now() - start;

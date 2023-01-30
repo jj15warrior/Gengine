@@ -63,8 +63,27 @@ struct G_bmp {
         h = 0;
         pixels = {};
     }
-};
+    void f_render(){
 
+        float xpos = (this->xpos / 1000.0);
+        float ypos = (this->ypos / 1000.0);
+        float w = this->w / 1000.0;
+        float h = this->h / 1000.0;
+        float xh = (h / this->pixels.size());
+        float xw = (w / this->pixels[0].size());
+        for (int y = 0; y < this->pixels.size(); y++) {
+            for (int x = 0; x < this->pixels[y].size(); x++) {
+                glColor4f(this->pixels[y][x].r, this->pixels[y][x].g, this->pixels[y][x].b, this->pixels[y][x].a);
+                glBegin(GL_QUADS);
+                glVertex2f(xpos + xw * x, ypos + xh * y);
+                glVertex2f(xpos + xw * x, ypos + xh * (y + 1));
+                glVertex2f(xpos + xw * (x + 1), ypos + xh * (y + 1));
+                glVertex2f(xpos + xw * (x + 1), ypos + xh * y);
+                glEnd();
+            }
+        }
+    }
+};
 struct G_text{
     float xpos, ypos;
     string text;
@@ -78,9 +97,31 @@ struct G_text{
         this->text = text;
         this->color = color;
     }
+
+    G_text() {
+        xpos = 0;
+        ypos = 0;
+        text = "";
+        color = RGBA();
+        font = nullptr;
+    }
+    void f_render(){
+        glColor4f(this->color.r, this->color.g, this->color.b, this->color.a);
+        glRasterPos2f(this->xpos, this->ypos);
+        for (char c : this->text) {
+            glutBitmapCharacter(this->font, c);
+        }
+    }
 };
 
-extern float axisX, axisY, preMouseY, preMouseX;
+void onSpecialUp(int key, int x, int y);
+void onPassiveMouse(int x, int y);
+void onSpecial(int key, int x, int y);
+void onMouse(int button, int state, int x, int y);
+void onKeyboard(unsigned char key, int x, int y);
+void onKeyboardUp(unsigned char key, int x, int y);
+
+extern float mousey, mousex;
 
 struct G_Button{
     G_bmp bmp;
@@ -90,10 +131,12 @@ struct G_Button{
         this->bmp = b;
         this->callback = *c;
     }
+
+    G_Button() {
+        bmp = G_bmp();
+        callback = nullptr;
+    }
 };
-
-
-
 struct G_triangle{
     float x1, y1, x2, y2, x3, y3;
     RGBA color;
@@ -107,8 +150,25 @@ struct G_triangle{
         this->y3 = y3;
         this->color = color;
     }
-};
 
+    G_triangle() {
+        x1 = 0;
+        y1 = 0;
+        x2 = 0;
+        y2 = 0;
+        x3 = 0;
+        y3 = 0;
+        color = RGBA();
+    }
+    void f_render(){
+        glColor4f(this->color.r, this->color.g, this->color.b, this->color.a);
+        glBegin(GL_TRIANGLES);
+        glVertex2f(SCREEN_PROP_CONST * this->x1 / 1000.0, this->y1 / 1000.0);
+        glVertex2f(SCREEN_PROP_CONST * this->x2 / 1000.0, this->y2 / 1000.0);
+        glVertex2f(SCREEN_PROP_CONST * this->x3 / 1000.0, this->y3 / 1000.0);
+        glEnd();
+    }
+};
 struct G_quad{
     float x1, y1, x2, y2,x3, y3, x4, y4;
     RGBA color;
@@ -124,46 +184,84 @@ struct G_quad{
         this->y4 = y4;
         this->color = color;
     }
-};
 
-struct glist{
-    vector<G_bmp> bmps;
-    vector<G_text> texts;
-    vector<G_Button> buttons;
-    vector<G_triangle> triangles;
-    vector<G_quad> quads;
-
-    void add(G_bmp bmp){
-        bmps.push_back(bmp);
-    }
-    void add(G_text text){
-        texts.push_back(text);
-    }
-    void add(G_Button button){
-        buttons.push_back(button);
-    }
-    void add(G_triangle triangle){
-        triangles.push_back(triangle);
-    }
-    void add(G_quad quad){
-        quads.push_back(quad);
-    }
-    void clear(){
-        bmps.clear();
-        texts.clear();
-        buttons.clear();
-        triangles.clear();
-        quads.clear();
+    G_quad() {
+        x1 = 0;
+        y1 = 0;
+        x2 = 0;
+        y2 = 0;
+        x3 = 0;
+        y3 = 0;
+        x4 = 0;
+        y4 = 0;
+        color = RGBA();
     }
 };
+struct G_line{
+    float x1, y1, x2, y2;
+    RGBA color;
 
-extern glist gllist;
+    G_line(float x1, float y1, float x2, float y2, RGBA color){
+        this->x1 = x1;
+        this->y1 = y1;
+        this->x2 = x2;
+        this->y2 = y2;
+        this->color = color;
+    }
+
+    G_line() {
+        x1 = 0;
+        y1 = 0;
+        x2 = 0;
+        y2 = 0;
+        color = RGBA();
+    }
+};
+
+
+struct Gobj{
+    string selected;
+    G_bmp bmp;
+    G_text text;
+    G_Button button;
+    G_triangle triangle;
+    G_quad quad;
+    G_line line;
+
+    Gobj(G_bmp bmp){
+        this->selected = "bmp";
+        this->bmp = bmp;
+    }
+    Gobj(G_text text){
+        this->selected = "text";
+        this->text = text;
+    }
+    Gobj(G_Button button){
+        this->selected = "button";
+        this->button = button;
+    }
+    Gobj(G_triangle triangle){
+        this->selected = "triangle";
+        this->triangle = triangle;
+    }
+    Gobj(G_quad quad){
+        this->selected = "quad";
+        this->quad = quad;
+    }
+    Gobj(G_line line){
+        this->selected = "line";
+        this->line = line;
+    }
+    Gobj(){
+        this->selected = "none";
+    }
+};
+
+extern vector <Gobj> gobjs;
+
+
 
 extern int CCscale;
-extern pair<int,int> cast_coords_to_canvas(float x, float y);
-extern pair<float, float> cast_canvas_to_coords(int x, int y);
-extern void draw_line(int x1, int y1, int x2, int y2, RGBA color);
-extern pair <int,int> cast_CC_to_canvas(int x, int y);
 extern int width, height;
 extern int old_width, old_height;
 extern chrono::time_point<chrono::steady_clock> start;
