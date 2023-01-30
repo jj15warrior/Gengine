@@ -67,18 +67,7 @@ G_line{
 ```
 keeps x and y coordinates of two points, and the color of the line
 
-
-```c++
-glist{
-    vector<G_bmp> bmps;
-    vector<G_text> texts;
-    vector<G_triangle> triangles;
-    vector<G_quad> quads;
-    vector<G_Button> buttons;
-};
-```
-this is the main storage, it stores all the objects that are rendered on the screen. it is a vector of all the objects, so you can add and remove objects from the screen ever tick.
-it supports ```c++ glist.add() ```for every data type represented
+# there is more datatypes, but i have to go to sleep lmao
 
 #Part 2: functions
 
