@@ -32,7 +32,7 @@ void onKeyboardUp(unsigned char key, int x, int y){
 }
 
 void init() {
-    G_bmp test_bmp = G_bmp(-1000, 940, 2000, 60, vector<vector<RGBA>>());
+    G_bmp test_bmp = G_bmp(-1000/SCREEN_PROP_CONST, 940, 2000/SCREEN_PROP_CONST, 60, vector<vector<RGBA>>());
     for (int i = 0; i < 100; i++) {
         vector<RGBA> row = vector<RGBA>();
         for (int j = 0; j < 100; j++) {
@@ -51,10 +51,12 @@ void init() {
 
     gobjs.push_back(l);
     gobjs.push_back(k);
+    G_circle circle1 = G_circle(0, 0, 100, RGBA(1, 1, 0, 1));
+    Gobj m = Gobj(circle1);
+    gobjs.push_back(m);
 }
 
 void tick() {
-    gobjs[1].reColour(RGBA(gobjs[1].triangle.color.r, gobjs[1].triangle.color.g?0:1, gobjs[1].triangle.color.b, gobjs[1].triangle.color.a));
-    cout << gobjs[1].triangle.color.a << endl;
+
 }
 
