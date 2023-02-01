@@ -19,7 +19,7 @@ vector<vector<RGBA>> canvas;
 float scale=1;
 double deltatime;
 float designated_Fps=60;
-float designated_Tps=1;
+float designated_Tps=10;
 int CCscale = 100;
 
 extern bool on;
@@ -34,6 +34,15 @@ extern bool on;
 
 Gobj gobj = Gobj();
 vector <Gobj> gobjs;
+
+void setGobjsSize(int size) {
+    if(gobjs.size()>size){
+        gobjs.erase(gobjs.begin()+size, gobjs.end());
+    }
+    else if(gobjs.size()<size){
+        gobjs.resize(size);
+    }
+}
 
 void calcDeltaTime(){
     chrono::duration<double> elapsed = chrono::steady_clock::now() - start;

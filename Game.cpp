@@ -31,8 +31,7 @@ void onKeyboardUp(unsigned char key, int x, int y){
 
 }
 
-
-void tick() {
+void init() {
     G_bmp test_bmp = G_bmp(-1000, 940, 2000, 60, vector<vector<RGBA>>());
     for (int i = 0; i < 100; i++) {
         vector<RGBA> row = vector<RGBA>();
@@ -41,10 +40,21 @@ void tick() {
         }
         test_bmp.pixels.push_back(row);
     }
-    G_triangle triangle1 = G_triangle(0, 0, 1000/SCREEN_PROP_CONST, 562.5/SCREEN_PROP_CONST, 0, 940, RGBA(1, 0, 1, 1));
-    G_triangle triangle2 = G_triangle(0, 0, -250, 0, 0, -250, RGBA(0, 1, 1, 1));
+    G_triangle triangle1 = G_triangle(1000/SCREEN_PROP_CONST, -1000, 1000/SCREEN_PROP_CONST, 1000, -100, 0, RGBA(1, 0, 1, 1));
+    G_triangle triangle2 = G_triangle(-1000/SCREEN_PROP_CONST, -1000, -1000/SCREEN_PROP_CONST, 1000, 100, 0, RGBA(0, 1, 1, 1));
 
     Gobj j = Gobj(test_bmp);
+
     gobjs.push_back(j);
+    Gobj k = Gobj(triangle1);
+    Gobj l = Gobj(triangle2);
+
+    gobjs.push_back(l);
+    gobjs.push_back(k);
+}
+
+void tick() {
+    gobjs[1].reColour(RGBA(gobjs[1].triangle.color.r, gobjs[1].triangle.color.g?0:1, gobjs[1].triangle.color.b, gobjs[1].triangle.color.a));
+    cout << gobjs[1].triangle.color.a << endl;
 }
 

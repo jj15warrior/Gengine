@@ -9,23 +9,7 @@ void render (){
     glLoadIdentity();
 
     for(Gobj g: gobjs){
-        if(g.selected == "bmp") {
-            g.bmp.f_render();
-        }else if(g.selected == "triangle"){
-            g.triangle.f_render();
-        }else if(g.selected == "quad"){
-            g.quad.f_render();
-        }else if(g.selected == "text") {
-            g.text.f_render();
-        }else if(g.selected == "line"){
-            g.line.f_render();
-        }else if(g.selected == "button"){
-            g.button.f_render();
-        }
-
-
-
-
+        g.f_render();
     }
 
     glutSwapBuffers();
@@ -78,6 +62,8 @@ int main(int argc, char** argv) {
     glutSpecialUpFunc(onSpecialUp);
     width = glutGet(GLUT_SCREEN_HEIGHT);
     height = glutGet(GLUT_SCREEN_HEIGHT);
+
+    init();
     glutMainLoop();
     return 0;
 }
