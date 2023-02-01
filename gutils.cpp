@@ -19,25 +19,33 @@ vector<vector<RGBA>> canvas;
 float scale=1;
 double deltatime;
 float designated_Fps=60;
-float designated_Tps=10;
+float designated_Tps=60;
 int CCscale = 100;
 
 extern bool on;
 
 pair <float,float> line_line_intersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4){
-    float x = ((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4)); //magic
-    float y = ((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4)); // ._.
+    float x = -1;
+    if((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4) != 0) {
+        x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) /
+            ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)); //magic
+    }
+    float y = -1;
+    if(((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4)) != 0) {
+        y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) /
+            ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)); // ._.
+    }
     return make_pair(x, y);
 }
 
-
-
-
-/*
- * 1. calculates the delta time in milliseconds (ms)
- * 2. prints the fps
- * 3. regulates fps by sleeping
- */
+void G_physic::update() {
+    for(auto g : gobjs){
+        if(g.physic.colidesWith(this->colider)){
+            cout << "colliding" << endl;
+        }
+    }
+    this->dxdy_tick();
+}
 
 Gobj gobj = Gobj();
 vector <Gobj> gobjs;
@@ -52,6 +60,11 @@ void setGobjsSize(int size) {
 }
 
 void calcDeltaTime(){
+    /*
+         * 1. calculates the delta time in milliseconds (ms)
+         * 2. prints the fps
+         * 3. regulates fps by sleeping
+    */
     chrono::duration<double> elapsed = chrono::steady_clock::now() - start;
     chrono::duration<double> elapsed_for_couts = chrono::steady_clock::now() - custimer; // it resets every second
 
@@ -67,53 +80,10 @@ void calcDeltaTime(){
 
     deltatime = elapsed.count()*1000; // delta time in milliseconds (ms)
 }
-
-
 void timetick() {
     chrono::duration<double> tick_elapsed = chrono::steady_clock::now() - tick_timer;
     if(tick_elapsed.count() > 1/designated_Tps) {
         tick();
         tick_timer = chrono::steady_clock::now();
-    }
-}
-
-pair<int,int> cast_coords_to_canvas(float x, float y) {
-    int x1 = (int)(((1+x)/2) * floor(width/scale));
-    int y1 = (int)(((1+y)/2) * floor(height/scale));
-    return make_pair(x1,y1);
-}
-
-pair<float, float> cast_canvas_to_coords(int x, int y) {
-    float x1 = (scale / width) * (float) x * 2 - 1;
-    float y1 = (scale / height) * (float) y * 2 - 1;
-    return make_pair(x1,y1);
-}
-
-pair <int, int> cast_CC_to_canvas(int x, int y) {
-    int x1 = (float)x/CCscale;
-    int y1 = (float)y/CCscale;
-    pair <int,int> r = cast_coords_to_canvas(x1,y1);
-    return r;
-}
-
-void draw_line(int x1, int y1, int x2, int y2, RGBA color) {
-    pair <int,int> p1 = cast_CC_to_canvas(x1,y1);
-    x1 = p1.first;
-    y1 = p1.second;
-    p1 = cast_CC_to_canvas(x2,y2);
-    x2 = p1.first;
-    y2 = p1.second;
-    int dx = abs(x2 - x1);
-    int dy = abs(y2 - y1);
-    int sx = x1 < x2 ? 1 : -1;
-    int sy = y1 < y2 ? 1 : -1;
-    int err = dx - dy;
-
-    while (true) {
-        canvas[x1][y1] = RGBA(1,1,1,1);
-        if (x1 == x2 && y1 == y2) break;
-        int e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; x1 += sx; }
-        if (e2 < dx) { err += dx; y1 += sy; }
     }
 }
