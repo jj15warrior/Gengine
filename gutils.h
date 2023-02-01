@@ -13,8 +13,26 @@
 
 using namespace std;
 
-
+struct Gobj;
+extern vector <Gobj> gobjs;
 extern double deltatime;
+extern void init();
+extern void setGobjsSize(int size);
+extern int width, height;
+extern chrono::time_point<chrono::steady_clock> start;
+extern float designated_Fps;
+extern float designated_Tps;
+extern chrono::time_point<chrono::steady_clock> tick_timer; //timer for game ticks
+extern chrono::time_point<chrono::steady_clock> custimer; //timer for couts
+extern chrono::time_point<chrono::steady_clock> endtime;
+
+extern bool on;
+
+extern void calcDeltaTime();
+extern void timetick();
+
+
+extern int fps;
 
 struct RGBA{
     RGBA(float r, float g, float b, float a){
@@ -120,7 +138,7 @@ struct G_text{
         }
         if(this->color.a != 0) {
             glColor4f(this->color.r, this->color.g, this->color.b, this->color.a);
-            glRasterPos2f(this->xpos, this->ypos);
+            glRasterPos2f(this->xpos/1000.0, this->ypos/1000.0);
             for (char c: this->text) {
                 glutBitmapCharacter(this->font, c);
             }
@@ -289,6 +307,7 @@ struct G_circle{
     }
 };
 
+extern void grc_debug(G_circle c);
 
 extern pair<float,float> line_line_intersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
 
@@ -312,10 +331,10 @@ struct G_colider {
     }
 
     G_colider(G_bmp bmp){
-        this->vertices.push_back(make_pair(bmp.ypos, bmp.ypos)); //bottom left
-        this->vertices.push_back(make_pair(bmp.ypos, bmp.ypos+bmp.h));
-        this->vertices.push_back(make_pair(bmp.ypos+bmp.w, bmp.ypos+bmp.h));
-        this->vertices.push_back(make_pair(bmp.ypos+bmp.w, bmp.ypos));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*bmp.xpos, bmp.ypos)); //bottom left
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*bmp.xpos, bmp.ypos+bmp.h));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*bmp.xpos+bmp.w, bmp.ypos+bmp.h));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*bmp.xpos+bmp.w, bmp.ypos));
     }
     G_colider(G_circle circle){
         for (int i = 0; i < 360; i++) {
@@ -326,40 +345,56 @@ struct G_colider {
         }
     }
     G_colider(G_quad quad){
-        this->vertices.push_back(make_pair(quad.x1, quad.y1));
-        this->vertices.push_back(make_pair(quad.x1, quad.y2));
-        this->vertices.push_back(make_pair(quad.x2, quad.y2));
-        this->vertices.push_back(make_pair(quad.x2, quad.y1));
+        this->vertices.push_back(make_pair(quad.x1*SCREEN_PROP_CONST, quad.y1));
+        this->vertices.push_back(make_pair(quad.x2*SCREEN_PROP_CONST, quad.y2));
+        this->vertices.push_back(make_pair(quad.x3*SCREEN_PROP_CONST, quad.y3));
+        this->vertices.push_back(make_pair(quad.x4*SCREEN_PROP_CONST, quad.y4));
     }
     G_colider(G_triangle triangle){
-        this->vertices.push_back(make_pair(triangle.x1, triangle.y1));
-        this->vertices.push_back(make_pair(triangle.x2, triangle.y2));
-        this->vertices.push_back(make_pair(triangle.x3, triangle.y3));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*triangle.x1, triangle.y1));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*triangle.x2, triangle.y2));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*triangle.x3, triangle.y3));
     }
     G_colider(G_line line){
-        this->vertices.push_back(make_pair(line.x1, line.y1));
-        this->vertices.push_back(make_pair(line.x2, line.y2));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*line.x1, line.y1));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*line.x2, line.y2));
     }
     G_colider(G_Button button){
-        this->vertices.push_back(make_pair(button.bmp.xpos, button.bmp.ypos));
-        this->vertices.push_back(make_pair(button.bmp.xpos, button.bmp.ypos+button.bmp.h));
-        this->vertices.push_back(make_pair(button.bmp.xpos+button.bmp.w, button.bmp.ypos+button.bmp.h));
-        this->vertices.push_back(make_pair(button.bmp.xpos+button.bmp.w, button.bmp.ypos));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*button.bmp.xpos, button.bmp.ypos));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*button.bmp.xpos, button.bmp.ypos+button.bmp.h));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*button.bmp.xpos+button.bmp.w, button.bmp.ypos+button.bmp.h));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*button.bmp.xpos+button.bmp.w, button.bmp.ypos));
     }
     G_colider(G_text text){
         float w = glutBitmapLength(text.font, (const unsigned char*)text.text.c_str());
         float h = glutBitmapWidth(text.font, 'A');
-        this->vertices.push_back(make_pair(text.xpos, text.ypos));
-        this->vertices.push_back(make_pair(text.xpos+w, text.ypos));
-        this->vertices.push_back(make_pair(text.xpos+w, text.ypos+h));
-        this->vertices.push_back(make_pair(text.xpos, text.ypos+h));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*text.xpos, text.ypos));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*text.xpos+w, text.ypos));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*text.xpos+w, text.ypos+h));
+        this->vertices.push_back(make_pair(SCREEN_PROP_CONST*text.xpos, text.ypos+h));
     }
     G_colider(){
         this->vertices = vector<pair<float, float>>();
     }
 
     bool colidesWith(G_colider other){
-
+        for(int i = 0; i < vertices.size(); i++){
+            for(int j = 0; j < other.vertices.size(); j++){
+                //cout << vertices[i].first << " " << vertices[i].second << " " << vertices[i+1].first << " " << vertices[i+1].second << "\n" << other.vertices[j].first << " " << other.vertices[j].second << " " << other.vertices[j+1].first << " " << other.vertices[j+1].second << endl;
+                pair<float, float> intersection = line_line_intersection(
+                        vertices[i].first, vertices[i].second,
+                        vertices[i+1].first, vertices[i+1].second,
+                        other.vertices[j].first, other.vertices[j].second,
+                        other.vertices[j+1].first, other.vertices[j+1].second
+                );
+                if(intersection != make_pair(-1.0f, -1.0f)){
+                    //G_circle c = G_circle(intersection.first/SCREEN_PROP_CONST, intersection.second, 50, RGBA(0,1,0,1));
+                    //grc_debug(c);
+                    cout << intersection.first << " " << intersection.second << endl;
+                    return true;
+                }
+            }
+        }
         return false;
     }
     void rotate(float angle){
@@ -408,8 +443,8 @@ struct G_physic{
         this->ay=0;
         this->rot = 0;
         this->mass = 1;
-        this->friction = 0.1;
-        this->gravity = 1;
+        this->friction = 0.2;
+        this->gravity = 10;
     }
     /*
 
@@ -429,7 +464,8 @@ struct G_physic{
         ax = 0;
         ay = 0;
         this->dy += this->gravity;
-
+        this->dx/(deltatime*(fps/designated_Tps)*1000);
+        this->dy/(deltatime*(fps/designated_Tps)*1000);
         if(dx*dx < 0.000005){
             dx = 0;
         }
@@ -450,7 +486,7 @@ struct G_physic{
 
     void applyForce(float x, float y){
         this->ax += x/this->mass;
-        this->ay += y/this->mass;
+        this->ay += -y/this->mass;
     }
 
     bool colidesWith(G_physic other){
@@ -470,21 +506,7 @@ struct G_physic{
 
 
 
-extern void init();
 
-extern void setGobjsSize(int size);
-extern int width, height;
-extern chrono::time_point<chrono::steady_clock> start;
-extern float designated_Fps;
-extern float designated_Tps;
-extern chrono::time_point<chrono::steady_clock> tick_timer; //timer for game ticks
-extern chrono::time_point<chrono::steady_clock> custimer; //timer for couts
-extern chrono::time_point<chrono::steady_clock> endtime;
-
-extern bool on;
-
-extern void calcDeltaTime();
-extern void timetick();
 
 #include "Gobj.h"
 #endif //FMS_2_GUTILS_H

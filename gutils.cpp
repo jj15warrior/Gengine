@@ -10,11 +10,11 @@ using namespace std;
 
 float mousex = 0, mousey = 0;
 int width, height;
+int fps = 0;
 std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 std::chrono::time_point<std::chrono::steady_clock> endtime = std::chrono::steady_clock::now();
 std::chrono::time_point<std::chrono::steady_clock> tick_timer = std::chrono::steady_clock::now(); //timer for game ticks
 std::chrono::time_point<std::chrono::steady_clock> custimer = std::chrono::steady_clock::now(); //timer for couts
-
 vector<vector<RGBA>> canvas;
 float scale=1;
 double deltatime;
@@ -24,31 +24,74 @@ int CCscale = 100;
 
 extern bool on;
 
+vector <Gobj> gobjs;
+
+void grc_debug(G_circle c){
+    gobjs.push_back(c);
+}
+
+pair <float, float> axb_calc(float x1, float y1, float x2, float y2){
+    float a = (y2 - y1)/(x2 - x1);
+    float b = y1 - a * x1;
+    return make_pair(a,b);
+}
+
 pair <float,float> line_line_intersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4){
-    float x = -1;
-    if((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4) != 0) {
-        x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) /
-            ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)); //magic
+    if(x1 == x2 && x3 == x4){
+        return make_pair(-1.0f,-1.0f);
     }
-    float y = -1;
-    if(((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4)) != 0) {
-        y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) /
-            ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)); // ._.
+    if(y1 == y2 && y3 == y4){
+        return make_pair(-1.0f,-1.0f);
     }
-    return make_pair(x, y);
+
+    if(x1 != x2 && x3 != x4) {
+
+        pair<float, float> axb1 = axb_calc(x1, y1, x2, y2);
+        pair<float, float> axb2 = axb_calc(x3, y3, x4, y4);
+        float xod = (axb2.second - axb1.second) / (axb2.first - axb1.first);
+
+        if (xod <= x4 && xod <= x2 && xod >= x3 && xod >= x1) {
+            return make_pair(xod, axb1.first * xod + axb1.second);
+        } else {
+            return make_pair(-1.0f, -1.0f);
+        }
+    }else if(x1 == x2 && x3 != x4) {
+        pair<float, float> axb2 = axb_calc(x3, y3, x4, y4);
+        float xod = ((min(x1, x2) + max(x1, x2)) / 2);
+        float yod = axb2.first * xod + axb2.second;
+        if (xod <= x4 && xod <= x2 && xod >= x3 && xod >= x1 && (yod <= max(y1, y2) && yod >= min(y1, y2))) {
+            return make_pair(xod, yod);
+        } else {
+            return make_pair(-1.0f, -1.0f);
+        }
+    }
+    else if(x1 != x2 && x3 == x4) {
+        pair<float, float> axb1 = axb_calc(x1, y1, x2, y2);
+        float xod = ((min(x3, x4) + max(x3, x4)) / 2);
+        float yod = axb1.first * xod + axb1.second;
+        if (xod <= x4 && xod <= x2 && xod >= x3 && xod >= x1 && (yod <= max(y3, y4) && yod >= min(y3, y4))) {
+            return make_pair(xod, yod);
+        } else {
+            return make_pair(-1.0f, -1.0f);
+        }
+    }// todo: vertsy się nie zgadzają
+    else{
+        return make_pair(-1.0f,-1.0f);
+    }
 }
 
 void G_physic::update() {
     for(auto g : gobjs){
-        if(g.physic.colidesWith(this->colider)){
-            cout << "colliding" << endl;
+        if(&g.physic != this){
+            if (g.physic.colidesWith(this->colider)) {
+                //objects are coliding !!!
+            }
         }
     }
     this->dxdy_tick();
 }
 
 Gobj gobj = Gobj();
-vector <Gobj> gobjs;
 
 void setGobjsSize(int size) {
     if(gobjs.size()>size){
@@ -73,8 +116,9 @@ void calcDeltaTime(){
     }
 
     chrono::duration<double> elapsed_for_fps = chrono::steady_clock::now() - start;
-    if(elapsed_for_couts.count() > 1){
-        cout << "fps: " << (int)(1/elapsed_for_fps.count()) << endl;
+    if(elapsed_for_couts.count() > 0.05){
+        //cout << "fps: " << (int)(1/elapsed_for_fps.count()) << endl;
+        fps = (int)(1/elapsed_for_fps.count());
         custimer = chrono::steady_clock::now();
     }
 

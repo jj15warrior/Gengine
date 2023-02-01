@@ -185,5 +185,4 @@ struct Gobj{
         }
     }
 };
-extern vector <Gobj> gobjs;
 #endif //FMS_2_GOBJ_H
