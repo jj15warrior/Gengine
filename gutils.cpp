@@ -26,8 +26,11 @@ extern bool on;
 
 vector <Gobj> gobjs;
 
-void grc_debug(G_circle c){
-    gobjs.push_back(c);
+void grc_debug(float x, float y){
+    G_circle c = G_circle(x,y,10,RGBA(0,1,0,1));
+    setGobjsSize(gobjs.size()+1);
+    gobjs[gobjs.size()-1] = c;
+    cout << x << " " << y << endl;
 }
 
 pair <float, float> axb_calc(float x1, float y1, float x2, float y2){
@@ -38,45 +41,55 @@ pair <float, float> axb_calc(float x1, float y1, float x2, float y2){
 
 pair <float,float> line_line_intersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4){
     if(x1 == x2 && x3 == x4){
-        return make_pair(-1.0f,-1.0f);
+        return make_pair(NPOS,NPOS);
     }
     if(y1 == y2 && y3 == y4){
-        return make_pair(-1.0f,-1.0f);
+        return make_pair(NPOS,NPOS);
+    }
+    if(x1>x2){
+        swap(x1,x2);
+        swap(y1,y2);
+    }
+    if(x3>x4){
+        swap(x3,x4);
+        swap(y3,y4);
     }
 
     if(x1 != x2 && x3 != x4) {
-
         pair<float, float> axb1 = axb_calc(x1, y1, x2, y2);
         pair<float, float> axb2 = axb_calc(x3, y3, x4, y4);
         float xod = (axb2.second - axb1.second) / (axb2.first - axb1.first);
 
         if (xod <= x4 && xod <= x2 && xod >= x3 && xod >= x1) {
-            return make_pair(xod, axb1.first * xod + axb1.second);
+            return make_pair(xod/SCREEN_PROP_CONST, axb1.first * xod + axb1.second);
         } else {
-            return make_pair(-1.0f, -1.0f);
-        }
-    }else if(x1 == x2 && x3 != x4) {
-        pair<float, float> axb2 = axb_calc(x3, y3, x4, y4);
-        float xod = ((min(x1, x2) + max(x1, x2)) / 2);
-        float yod = axb2.first * xod + axb2.second;
-        if (xod <= x4 && xod <= x2 && xod >= x3 && xod >= x1 && (yod <= max(y1, y2) && yod >= min(y1, y2))) {
-            return make_pair(xod, yod);
-        } else {
-            return make_pair(-1.0f, -1.0f);
+            return make_pair(NPOS, NPOS);
         }
     }
-    else if(x1 != x2 && x3 == x4) {
-        pair<float, float> axb1 = axb_calc(x1, y1, x2, y2);
-        float xod = ((min(x3, x4) + max(x3, x4)) / 2);
-        float yod = axb1.first * xod + axb1.second;
-        if (xod <= x4 && xod <= x2 && xod >= x3 && xod >= x1 && (yod <= max(y3, y4) && yod >= min(y3, y4))) {
-            return make_pair(xod, yod);
-        } else {
-            return make_pair(-1.0f, -1.0f);
+    else if(x1 == x2 && x3 != x4){
+        pair<float, float> axb2 = axb_calc(x3, y3, x4, y4);
+        float xod = x1;
+        float yod = axb2.first * xod + axb2.second;
+        if(yod <= y4 && yod <= y2 && yod >= y3 && yod >= y1 && x1 <= x4 && x1 >= x3){
+            return make_pair(xod/SCREEN_PROP_CONST, yod);
         }
-    }// todo: vertsy się nie zgadzają
+        else{
+            return make_pair(NPOS,NPOS);
+        }
+    }
+    else if(x1 != x2 && x3 == x4){
+        pair<float, float> axb1 = axb_calc(x1, y1, x2, y2);
+        float xod = x3;
+        float yod = axb1.first * xod + axb1.second;
+        if(yod <= y4 && yod <= y2 && yod >= y3 && yod >= y1 && x3 >= x1 && x3 <= x2){
+            return make_pair(xod/SCREEN_PROP_CONST, yod);
+        }
+        else{
+            return make_pair(NPOS,NPOS);
+        }
+    }
     else{
-        return make_pair(-1.0f,-1.0f);
+        return make_pair(NPOS,NPOS);
     }
 }
 

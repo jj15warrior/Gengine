@@ -9,7 +9,7 @@
 
 #define SCREEN_PROP_CONST 0.5625
 #define DEG2RAD 0.0174532925
-
+#define NPOS 99999999.0f
 
 using namespace std;
 
@@ -307,7 +307,7 @@ struct G_circle{
     }
 };
 
-extern void grc_debug(G_circle c);
+extern void grc_debug(float x1,float x2);
 
 extern pair<float,float> line_line_intersection(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4);
 
@@ -380,18 +380,16 @@ struct G_colider {
     bool colidesWith(G_colider other){
         for(int i = 0; i < vertices.size(); i++){
             for(int j = 0; j < other.vertices.size(); j++){
-                //cout << vertices[i].first << " " << vertices[i].second << " " << vertices[i+1].first << " " << vertices[i+1].second << "\n" << other.vertices[j].first << " " << other.vertices[j].second << " " << other.vertices[j+1].first << " " << other.vertices[j+1].second << endl;
+                cout << vertices[i].first << " " << vertices[i].second << " " << vertices[i+1].first << " " << vertices[i+1].second << "\n" << other.vertices[j].first << " " << other.vertices[j].second << " " << other.vertices[j+1].first << " " << other.vertices[j+1].second << endl;
                 pair<float, float> intersection = line_line_intersection(
                         vertices[i].first, vertices[i].second,
                         vertices[i+1].first, vertices[i+1].second,
                         other.vertices[j].first, other.vertices[j].second,
                         other.vertices[j+1].first, other.vertices[j+1].second
                 );
-                if(intersection != make_pair(-1.0f, -1.0f)){
-                    //G_circle c = G_circle(intersection.first/SCREEN_PROP_CONST, intersection.second, 50, RGBA(0,1,0,1));
-                    //grc_debug(c);
-                    cout << intersection.first << " " << intersection.second << endl;
-                    return true;
+                if(intersection != make_pair(NPOS, NPOS)){
+                    grc_debug(intersection.first, intersection.second);
+
                 }
             }
         }
