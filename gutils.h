@@ -380,16 +380,23 @@ struct G_colider {
     bool colidesWith(G_colider other){
         for(int i = 0; i < vertices.size(); i++){
             for(int j = 0; j < other.vertices.size(); j++){
-                cout << vertices[i].first << " " << vertices[i].second << " " << vertices[i+1].first << " " << vertices[i+1].second << "\n" << other.vertices[j].first << " " << other.vertices[j].second << " " << other.vertices[j+1].first << " " << other.vertices[j+1].second << endl;
-                pair<float, float> intersection = line_line_intersection(
-                        vertices[i].first, vertices[i].second,
-                        vertices[i+1].first, vertices[i+1].second,
-                        other.vertices[j].first, other.vertices[j].second,
-                        other.vertices[j+1].first, other.vertices[j+1].second
-                );
-                if(intersection != make_pair(NPOS, NPOS)){
-                    grc_debug(intersection.first, intersection.second);
+                if(j+1 <= other.vertices.size() && i+1 <= vertices.size()) {
+                    if(vertices!=other.vertices) {
+                        cout << vertices[i].first << " " << vertices[i].second << " " << vertices[i + 1].first << " "
+                             << vertices[i + 1].second << "\n" << other.vertices[j].first << " "
+                             << other.vertices[j].second
+                             << " " << other.vertices[j + 1].first << " " << other.vertices[j + 1].second << endl;
+                        pair<float, float> intersection = line_line_intersection(
+                                vertices[i].first, vertices[i].second,
+                                vertices[i + 1].first, vertices[i + 1].second,
+                                other.vertices[j].first, other.vertices[j].second,
+                                other.vertices[j + 1].first, other.vertices[j + 1].second
+                        );
+                        if (intersection != make_pair(NPOS, NPOS)) {
+                            grc_debug(intersection.first, intersection.second);
 
+                        }
+                    }
                 }
             }
         }

@@ -60,7 +60,7 @@ pair <float,float> line_line_intersection(float x1, float y1, float x2, float y2
         pair<float, float> axb2 = axb_calc(x3, y3, x4, y4);
         float xod = (axb2.second - axb1.second) / (axb2.first - axb1.first);
 
-        if (xod <= x4 && xod <= x2 && xod >= x3 && xod >= x1) {
+        if (xod < x4 && xod < x2 && xod > x3 && xod > x1) {
             return make_pair(xod/SCREEN_PROP_CONST, axb1.first * xod + axb1.second);
         } else {
             return make_pair(NPOS, NPOS);
@@ -70,7 +70,7 @@ pair <float,float> line_line_intersection(float x1, float y1, float x2, float y2
         pair<float, float> axb2 = axb_calc(x3, y3, x4, y4);
         float xod = x1;
         float yod = axb2.first * xod + axb2.second;
-        if(yod <= y4 && yod <= y2 && yod >= y3 && yod >= y1 && x1 <= x4 && x1 >= x3){
+        if(yod < y4 && yod < y2 && yod > y3 && yod > y1 && x1 < x4 && x1 > x3){
             return make_pair(xod/SCREEN_PROP_CONST, yod);
         }
         else{
@@ -81,7 +81,7 @@ pair <float,float> line_line_intersection(float x1, float y1, float x2, float y2
         pair<float, float> axb1 = axb_calc(x1, y1, x2, y2);
         float xod = x3;
         float yod = axb1.first * xod + axb1.second;
-        if(yod <= y4 && yod <= y2 && yod >= y3 && yod >= y1 && x3 >= x1 && x3 <= x2){
+        if(yod <= y4 && yod < y2 && yod > y3 && yod > y1 && x3 > x1 && x3 < x2){
             return make_pair(xod/SCREEN_PROP_CONST, yod);
         }
         else{
