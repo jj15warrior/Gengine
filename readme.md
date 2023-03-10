@@ -1,4 +1,4 @@
-# GEngine
+# GEngine a.k.a. another dead but fun project
 
 this is my attemt to create a game engine in c++
 
